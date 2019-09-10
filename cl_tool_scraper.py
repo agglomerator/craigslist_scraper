@@ -46,7 +46,7 @@ header_prefix           = ('*' * 15)
 gmail_sender    = 'scraper@kvaternik.com'
 gmail_passwd    = 'kmqbpfgdxmahoijr'
 from_address    = 'scraper@kvaternik.com'
-user_email      = 'andre+craigstlist@kvaternik.com'
+user_email      = 'andre+craigslist@kvaternik.com'
 
 msg_body_start  = """\
 <html>
