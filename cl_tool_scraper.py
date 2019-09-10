@@ -209,6 +209,7 @@ try:
     server.quit()
 except:
     print ('error sending mail') 
+#
 
 logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count)
 logger.info('%sThere were %s search results returned from the query...', indent(0), len(listing_info))
