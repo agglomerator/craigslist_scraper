@@ -21,6 +21,10 @@ from urllib.parse import urljoin  # PY3
 from bs4 import BeautifulSoup
 import urllib.request
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.message import EmailMessage
 # _____________________________________________________________________________________________________________________
 #   define some constants and variables 
 # _____________________________________________________________________________________________________________________
@@ -39,9 +43,10 @@ header_prefix           = ('*' * 15)
 # Create message container - the correct MIME type is multipart/alternative.
 # Credentials for sending email from Kvaternik.com
 
-gmail_sender = 'scraper@kvaternik.com'
-gmail_passwd = 'kmqbpfgdxmahoijr'
-from_address = 'campgrounds@kvaternik.com'
+gmail_sender    = 'scraper@kvaternik.com'
+gmail_passwd    = 'kmqbpfgdxmahoijr'
+from_address    = 'scraper@kvaternik.com'
+user_email      = 'andre+craigstlist@kvaternik.com'
 
 msg_body_start  = """\
 <html>
@@ -120,18 +125,13 @@ with open(cl_search_input_file) as csv_file:
 
     line_count = 0    
     for inputrow in reader:
-        line_count += 1        # _____________________________________________________________________________________________________________________
+        line_count += 1        
+        # _____________________________________________________________________________________________________________________
         #    create search URL and call it
         # _____________________________________________________________________________________________________________________
         search_term = create_search_url(location,inputrow['category'],inputrow['searchterm'],inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
         response = requests.get(search_term)
-        
-        # try:
-        #     wait = WebDriverWait(driver,delay)
-        #     wait.until(EC.presence_of_element_located((By.ID, "searchform")))
-        #     print("Page is ready")
-        # except TimeoutException:
-        #     print("Loading took too much time")
+
         # _____________________________________________________________________________________________________________________
         #    Now parse the resulting output and put the results into an array for unloading later
         # _____________________________________________________________________________________________________________________
@@ -166,9 +166,49 @@ with open(cl_search_input_file) as csv_file:
             str(post_time) + "|" + 
             url 
             )
-             
-# for x in range(len(listing_info)):
-#     print("array = %s" %(listing_info[x]))
+# _____________________________________________________________________________________________________________________
+#    Now create an email with the results of the search
+# _____________________________________________________________________________________________________________________        
+
+hold_searchterm     = ''
+msg_links           = ''
+msg_html            = ''
+email_body          = ''              
+
+for x in range(len(listing_info)):
+    search_results = listing_info[x].split("|")
+    if hold_searchterm != search_results[0]:
+        msg_links       = msg_links + '<br><b>' + search_results[0] + '</b>' 
+        hold_searchterm = search_results[0]
+        
+    indent_string   = ("&nbsp;" * 10 * 1)
+    email_body = email_body + '<br>' + indent_string  + '<a href="' + search_results[5] + '">' + search_results[1] + '</a>' + \
+    + ", Location = " + search_results[2] + ", Price = " + search_results[3] + ", Post Date = " + search_results[4] 
+
+# _____________________________________________________________________________________________________________________
+#    Setup the SMTP fields and send the email
+# _____________________________________________________________________________________________________________________   
+msg_links       = msg_links + email_body
+msg_html        = msg_body_start  +  msg_links + '\n' + msg_body_end
+msg             = MIMEMultipart('alternative')
+subject_text    = ' '
+msg['Subject']  = 'Craigslist Scraper Results'
+msg['From']     = from_address
+msg['To']       = user_email
+body            = MIMEText(msg_html, 'html')
+msg.attach(body)
+
+# SMTP setup for gmail
+server          = smtplib.SMTP('smtp.gmail.com', 587)
+server.ehlo()
+server.starttls()
+server.login(gmail_sender,gmail_passwd)
+try:
+    server.sendmail(from_address, user_email, msg.as_string())
+    print("email successfully sent...")
+    server.quit()
+except:
+    print ('error sending mail') 
 
 logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count)
 logger.info('%sThere were %s search results returned from the query...', indent(0), len(listing_info))
