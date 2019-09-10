@@ -178,18 +178,18 @@ email_body          = ''
 for x in range(len(listing_info)):
     search_results = listing_info[x].split("|")
     if hold_searchterm != search_results[0]:
-        msg_links       = msg_links + '<br><b>' + search_results[0] + '</b>' 
+        email_body      = email_body + '<br><b>' + "SEARCH TERM = " + search_results[0].upper() + '</b>' 
         hold_searchterm = search_results[0]
         
     indent_string   = ("&nbsp;" * 10 * 1)
     email_body = email_body + '<br>' + indent_string  + '<a href="' + search_results[5] + '">' + search_results[1] + '</a>' + \
-    + ", Location = " + search_results[2] + ", Price = " + search_results[3] + ", Post Date = " + search_results[4] 
+      ", Location = " + search_results[2] + ", Price = " + search_results[3] + ", Post Date = " + search_results[4] 
 
 # _____________________________________________________________________________________________________________________
 #    Setup the SMTP fields and send the email
 # _____________________________________________________________________________________________________________________   
-msg_links       = msg_links + email_body
-msg_html        = msg_body_start  +  msg_links + '\n' + msg_body_end
+#msg_links       = msg_links + email_body
+msg_html        = msg_body_start  + email_body + '\n' + msg_body_end
 msg             = MIMEMultipart('alternative')
 subject_text    = ' '
 msg['Subject']  = 'Craigslist Scraper Results'
@@ -213,5 +213,5 @@ except:
 
 logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count)
 logger.info('%sThere were %s search results returned from the query...', indent(0), len(listing_info))
-logger.info('_' * 120)
 logger.info('%s Python Craigslist Scraping Script Completed %s',header_prefix,header_prefix)
+logger.info('_' * 120)
