@@ -27,7 +27,7 @@ import urllib.request
 cl_search_input_file    = r'C:\Users\Andre\Google Drive\GitHub\craigslist_scraper\cl_search_input.csv'
 location                = "sfbay"
 zipcode                 = "94566"
-driver                  = webdriver.Chrome()  
+#driver                  = webdriver.Chrome()  
 delay                   = 5
 listing_info            = []
 start_stop_str          = '_' * 150
@@ -56,6 +56,7 @@ msg_body_end = """ \
 
 #   ___________________setup logging ____________________________________________
 def logger_setup():
+    global logger
     logger = logging.getLogger(__name__)
     logging.getLogger().setLevel(logging.INFO)
     log_format = '%(asctime)-15s %(message)s'
@@ -125,12 +126,12 @@ with open(cl_search_input_file) as csv_file:
         search_term = create_search_url(location,inputrow['category'],inputrow['searchterm'],inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
         response = requests.get(search_term)
         
-        try:
-            wait = WebDriverWait(driver,delay)
-            wait.until(EC.presence_of_element_located((By.ID, "searchform")))
-            print("Page is ready")
-        except TimeoutException:
-            print("Loading took too much time")
+        # try:
+        #     wait = WebDriverWait(driver,delay)
+        #     wait.until(EC.presence_of_element_located((By.ID, "searchform")))
+        #     print("Page is ready")
+        # except TimeoutException:
+        #     print("Loading took too much time")
         # _____________________________________________________________________________________________________________________
         #    Now parse the resulting output and put the results into an array for unloading later
         # _____________________________________________________________________________________________________________________
@@ -165,13 +166,11 @@ with open(cl_search_input_file) as csv_file:
             str(post_time) + "|" + 
             url 
             )
-            
-print ("There are %s entries in the returned array" %(len(listing_info)))
- 
-for x in range(len(listing_info)):
-    print("array = %s" %(listing_info[x]))
+             
+# for x in range(len(listing_info)):
+#     print("array = %s" %(listing_info[x]))
 
-driver.close
-logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count))
+logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count)
+logger.info('%sThere were %s search results returned from the query...', indent(0), len(listing_info))
 logger.info('_' * 120)
-logger.info('%s Python Cr Scraping Script Completed %s',header_prefix,header_prefix)
+logger.info('%s Python Craigslist Scraping Script Completed %s',header_prefix,header_prefix)
