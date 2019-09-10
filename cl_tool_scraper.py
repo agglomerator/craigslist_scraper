@@ -8,6 +8,8 @@ from datetime import datetime
 import sys
 import time
 import logging
+import logging.handlers
+from logging.handlers import TimedRotatingFileHandler
 import requests
 
 from selenium import webdriver
@@ -22,12 +24,65 @@ import urllib.request
 # _____________________________________________________________________________________________________________________
 #   define some constants and variables 
 # _____________________________________________________________________________________________________________________
-cl_search_input_file = r'C:\Users\Andre\Google Drive\GitHub\craigslist_scraper\cl_search_input.csv'
-location        = "sfbay"
-zipcode         = "94566"
-driver          = webdriver.Chrome()  
-delay           = 5
-listing_info    = []
+cl_search_input_file    = r'C:\Users\Andre\Google Drive\GitHub\craigslist_scraper\cl_search_input.csv'
+location                = "sfbay"
+zipcode                 = "94566"
+driver                  = webdriver.Chrome()  
+delay                   = 5
+listing_info            = []
+start_stop_str          = '_' * 150
+header_prefix           = ('*' * 15)
+# _______________________________________________________________________________________
+# declare a bunch of variables for use in sending email via Gmail
+# this is documented at https://www.interviewqs.com/blog/py_email
+
+# Create message container - the correct MIME type is multipart/alternative.
+# Credentials for sending email from Kvaternik.com
+
+gmail_sender = 'scraper@kvaternik.com'
+gmail_passwd = 'kmqbpfgdxmahoijr'
+from_address = 'campgrounds@kvaternik.com'
+
+msg_body_start  = """\
+<html>
+  <head></head>
+  <body>
+"""
+
+msg_body_end = """ \
+    </body>
+</html>
+"""
+
+#   ___________________setup logging ____________________________________________
+def logger_setup():
+    logger = logging.getLogger(__name__)
+    logging.getLogger().setLevel(logging.INFO)
+    log_format = '%(asctime)-15s %(message)s'
+    logformatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%a-%b-%d %H:%M:%S')
+    logging.basicConfig(
+        format=log_format,
+        level=logging.INFO)
+
+    logname = r'C:\Users\Andre\OneDrive - Instor Solutions\Documents\Andre_Stuff\craigslist\craigslist_scraping.log'
+    loghandler = TimedRotatingFileHandler(logname,
+                                          when='midnight',
+                                          interval=1,
+                                          backupCount=3)
+    loghandler.suffix = '%Y%m%d'
+    logger.addHandler(loghandler)
+    loghandler.setFormatter(logformatter)
+
+#   ___________________ Define a function to indent log files ____________________________________________
+def indent(level):
+    indent = ' ' * 4 * level
+    return indent
+
+def html_indent(level):
+    html_indent = "&nbsp;" * 5 * level
+    return html_indent
+
+
 # _____________________________________________________________________________________________________________________
 #   define function to call when ready to create search URL
 # _____________________________________________________________________________________________________________________
@@ -44,14 +99,27 @@ def create_search_url(location,category,searchterm,radius,zipcode,min_price,max_
     "&max_price=" + max_price
     return (search_url)
 
+#  ________________  create startup procedure__________________________________________________________________________
+
+def startup_procedure():
+    logger.info(' ' * 120)
+    logger.info(start_stop_str)
+    logger.info('%s Python Craigslist Scraper Script %s Started %s',header_prefix,sys.argv[0],header_prefix)
+    
+#  ________________  Start proeessing _________________________________________________________________________    
+
+if __name__ == "__main__":
+    logger_setup()    
+    startup_procedure()
 # _____________________________________________________________________________________________________________________
 #    Open and read the csv file containing the input parmeters for the search
 # _____________________________________________________________________________________________________________________
 with open(cl_search_input_file) as csv_file:
     reader = csv.DictReader(csv_file)
+
+    line_count = 0    
     for inputrow in reader:
-        line_count = 0
-        # _____________________________________________________________________________________________________________________
+        line_count += 1        # _____________________________________________________________________________________________________________________
         #    create search URL and call it
         # _____________________________________________________________________________________________________________________
         search_term = create_search_url(location,inputrow['category'],inputrow['searchterm'],inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
@@ -104,3 +172,6 @@ for x in range(len(listing_info)):
     print("array = %s" %(listing_info[x]))
 
 driver.close
+logger.info('%sThere were %s input lines in the Craigslist search query file...', indent(0), line_count))
+logger.info('_' * 120)
+logger.info('%s Python Cr Scraping Script Completed %s',header_prefix,header_prefix)
