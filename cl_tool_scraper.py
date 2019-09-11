@@ -128,6 +128,7 @@ with open(cl_search_input_file) as csv_file:
         line_count += 1        
         # _____________________________________________________________________________________________________________________
         #    create search URL and call it
+        # write some code to parse out | and replace with %7C as the "OR" operand, such as query=jointer%7Cjoiner
         # _____________________________________________________________________________________________________________________
         search_term = create_search_url(location,inputrow['category'],inputrow['searchterm'],inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
         response = requests.get(search_term)
