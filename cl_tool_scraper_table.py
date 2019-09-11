@@ -70,11 +70,11 @@ table{
 <body>
 <thead>
 <tr>
-    <th>Search Term</th>
-    <th>Description</th>
-    <th>Location - Neighborhood</th>
-    <th>Asking Price</th>
-    <th>Posting Date</th>
+    <th>SEARCH TERM</th>
+    <th>DESCRIPTION</th>
+    <th>LOCATION - NEIGHBORHOOD</th>
+    <th>ASKING PRICE</th>
+    <th>POSTING DATE</th>
 </tr>
 </thead>
 """
@@ -117,18 +117,30 @@ def html_indent(level):
 
 # _____________________________________________________________________________________________________________________
 #   define function to call when ready to create search URL
-# _____________________________________________________________________________________________________________________
+# search syntax - https://sfbay.craigslist.org/search/eby/tla?query=ladder&sort=priceasc&search_distance=10&postal=94566&nh=53
+# https://sfbay.craigslist.org/search/eby/tla?sort=priceasc&search_distance=10&postal=94566&nh=53
+# # _____________________________________________________________________________________________________________________
 def create_search_url(location,category,searchterm,radius,zipcode,min_price,max_price):
-  
-    search_url = \
-    "https://" + location + \
-    ".craigslist.org/search/" + category + \
-    "?sort=pricedsc" + \
-    "&query=" + searchterm + \
-    "&search_distance=" + radius + \
-    "&postal=" + zipcode + \
-    "&min_price=" + min_price + \
-    "&max_price=" + max_price
+    if len(searchterm) > 0:           
+        search_url = \
+        "https://" + location + \
+        ".craigslist.org/search/" + category + \
+        "?sort=pricedsc" + \
+        "&query=" + searchterm + \
+        "&search_distance=" + radius + \
+        "&postal=" + zipcode + \
+        "&min_price=" + min_price + \
+        "&max_price=" + max_price
+    else: 
+        search_url = \
+        "https://" + location + \
+        ".craigslist.org/search/" + category + \
+        "?sort=pricedsc" + \
+        "&search_distance=" + radius + \
+        "&postal=" + zipcode + \
+        "&min_price=" + min_price + \
+        "&max_price=" + max_price
+        
     return (search_url)
 
 #  ________________  create startup procedure__________________________________________________________________________
@@ -151,12 +163,24 @@ with open(cl_search_input_file) as csv_file:
 
     line_count = 0    
     for inputrow in reader:
-        line_count += 1        
+        line_count += 1   
+           
+        if len(inputrow['searchterm']) > 0:
+            if "|" in inputrow['searchterm']:
+                search_key = inputrow['searchterm'].replace("|","%7C")  
+                collate_key = inputrow['searchterm'].replace("|"," or ").upper() 
+            else: 
+                collate_key = inputrow['searchterm'].upper() 
+                search_key = inputrow['searchterm']        
+        else:
+            collate_key = ('General - ' + zipcode + ' + ' + inputrow['radius'] + ' Miles').upper()       
+            search_key = inputrow['searchterm'] 
         # _____________________________________________________________________________________________________________________
         #    create search URL and call it
         # write some code to parse out | and replace with %7C as the "OR" operand, such as query=jointer%7Cjoiner
+        # write code to allow for a region within sfbay, and a neighborhood
         # _____________________________________________________________________________________________________________________
-        search_term = create_search_url(location,inputrow['category'],inputrow['searchterm'],inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
+        search_term = create_search_url(location,inputrow['category'],search_key,inputrow['radius'],zipcode,inputrow['min_price'],inputrow['max_price'])         
         response = requests.get(search_term)
 
         # _____________________________________________________________________________________________________________________
@@ -186,7 +210,7 @@ with open(cl_search_input_file) as csv_file:
                 post_time = ""
                 
             listing_info.append(
-            inputrow['searchterm'] + "|" + 
+            collate_key + "|" + 
             name + "|" + 
             where + "|" + 
             price.text + "|" + 
@@ -208,7 +232,7 @@ for x in range(len(listing_info)):
         search_cell     = search_results[0].upper() 
     else:
         search_cell = ""    
-        #email_body      = email_body + '<br><b>' + "SEARCH TERM = " + search_results[0].upper() + '</b>' 
+    
     hold_searchterm = search_results[0]
         
     indent_string   = ("&nbsp;" * 10 * 1)
