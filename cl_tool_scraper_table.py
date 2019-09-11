@@ -1,6 +1,8 @@
 """
 Craigslist scraper - 
 By: Andre Kvaternik, September 2019
+
+Scrape Craigslist for tools and return the results in a table in an email...
 """
 
 import csv
