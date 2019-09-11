@@ -57,7 +57,10 @@ msg_body_start  = """\
 table{
     background-color: #AAD373;
     empty-cells:hide;
-    Border:2px solid blue;
+    Border:2px solid black;
+ }
+ th {
+     border: 1px solid black;
  }
  td.cell{
     background-color: white;
@@ -209,12 +212,14 @@ for x in range(len(listing_info)):
     hold_searchterm = search_results[0]
         
     indent_string   = ("&nbsp;" * 10 * 1)
-    email_body      = \
-    email_body + '<tr><td class="cell"><b>' + search_cell + '</b></td>'  + \
+    email_body      = email_body + \
+    '<tr>' + \
+    '<td class="cell"><b>' + search_cell + '</b></td>'  + \
     '<td class="cell">' + '<a href="' + search_results[5] + '">' + search_results[1] + '</a>'+ '</td>' + \
     '<td class="cell">' + search_results[2] + '</td>' + \
-    '<td class="cell">' + search_results[3] + '</td>' + \
-    '<td class="cell">' + search_results[4] + '</td>'  
+    '<td align="right" class="cell">' + search_results[3] + '</td>' + \
+    '<td align="right" style="width:125px" class="cell">' + search_results[4] + '</td>' + \
+    '</tr>'
         
     # email_body = email_body + '<br>' + indent_string  + '<a href="' + search_results[5] + '">' + search_results[1] + '</a>' + \
     #   ", Location = " + search_results[2] + ", Price = " + search_results[3] + ", Post Date = " + search_results[4] 
