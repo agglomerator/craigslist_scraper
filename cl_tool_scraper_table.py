@@ -190,6 +190,9 @@ with open(cl_search_input_file) as csv_file:
         # _____________________________________________________________________________________________________________________
         soup = BeautifulSoup(response.content,'html.parser')
         rows = soup.find('ul', {'class': 'rows'})
+        
+        if len(rows.find_all('li', {'class': 'result-row'},recursive=False)) == 0:
+            logger.info('%sNo results were returned for searchterm = %s', indent(1), collate_key)       
 
         for row in rows.find_all('li', {'class': 'result-row'},recursive=False):
 

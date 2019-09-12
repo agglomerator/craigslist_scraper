@@ -1,8 +1,8 @@
 category,radius,searchterm,min_price,max_price
+tla,50,strip sander,50,200
 tla,50,jointer -craftsman|joiner -craftsman,150,400
 tla,50,mig welder,150,450
 tla,50,planer,150,500
 tla,50,oscillating sander,50,200
-tla,25,milwaukee router,50,200
 tla,10,Milwaukee M18,50,150
 tla,5,,5,75
